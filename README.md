@@ -13,9 +13,9 @@ Graph-based route optimization system for an e-commerce delivery network across 
 
 ## Documentation & Project Files
 
-📄 **[View Full Project Report (PDF)](PROJECT+REPORT.pdf)**  
-📓 **[Open Jupyter Notebook](DELIVERY%20route%20optimization%20code.ipynb)**  
-📊 **[View City Coordinates (PDF)](cities.pdf)** | **[View Road Distances (PDF)](distance.pdf)** | **[View Delivery Constraints (PDF)](delivery.pdf)**
+ **[View Full Project Report (PDF)](PROJECT+REPORT.pdf)**  
+ **[Open Jupyter Notebook](DELIVERY%20route%20optimization%20code.ipynb)**  
+ **[View City Coordinates (PDF)](cities.pdf)** | **[View Road Distances (PDF)](distance.pdf)** | **[View Delivery Constraints (PDF)](delivery.pdf)**
 
 ---
 
@@ -26,6 +26,8 @@ This project models a road freight network across 20 major French cities as a we
 ---
 
 ## Graph Model
+
+![France Network Visualization](france.png)
 
 - **20 nodes** (French cities), **30 edges** (road connections) after deduplication
 - Undirected, weighted graph initialized using `networkx.Graph()`
@@ -124,7 +126,7 @@ $$
 | Route | Test Conditions | Traffic Factor | Duration | Estimated Cost | Risk Level |
 |---|---|---|---|---|---|
 | Paris -> Marseille | Monday, Clear, Rush hour | 1.25x | 10h 50m | 341 € |  MEDIUM |
-| Paris -> Marseille | Sunday, Clear, Night | 0.77x | 6h 40m | 210 € | LOW |
+| Paris -> Marseille | Sunday, Clear, Night | 0.77x | 6h 40m | 210 € |  LOW |
 | Lille -> Toulouse | Friday, Rain, Rush hour | 1.73x | 22h 12m | 699 € |  HIGH |
 | Nantes -> Nice | Wednesday, Snow, Normal | 1.45x | 16h 02m | 505 € |  HIGH |
 
@@ -195,8 +197,9 @@ delivery-route-optimization/
 ├── DELIVERY route optimization code.ipynb  # Main Jupyter Notebook
 ├── PROJECT+REPORT.pdf                      # Comprehensive project documentation
 ├── cities.pdf                              # Node coordinates (latitude/longitude)
-├── distance.pdf                            # Graph edge weights (km)
 ├── delivery.pdf                            # Order window constraints
+├── distance.pdf                            # Graph edge weights (km)
+├── france.png                              # Network graph visualization
 └── README.md                               # Project documentation
 ```
 
@@ -204,8 +207,9 @@ delivery-route-optimization/
 
 ## Team
 
-Academic project developed for the Graph Theory course (Academic Year 2025-2026).
+Academic project developed for the Graph Theory course (Academic Year 2025-2026).  
 Course Teacher: Dr Ahmed Ben Mansour
+
 | Member | Module Contribution |
 |---|---|
 | **Raed Meddeb** | Delivery Prediction Engine (time, cost, and delay risk) |
