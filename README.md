@@ -123,10 +123,10 @@ $$
 
 | Route | Test Conditions | Traffic Factor | Duration | Estimated Cost | Risk Level |
 |---|---|---|---|---|---|
-| Paris -> Marseille | Monday, Clear, Rush hour | 1.25x | 10h 50m | 341 € | 🟡 MEDIUM |
-| Paris -> Marseille | Sunday, Clear, Night | 0.77x | 6h 40m | 210 € | 🟢 LOW |
-| Lille -> Toulouse | Friday, Rain, Rush hour | 1.73x | 22h 12m | 699 € | 🔴 HIGH |
-| Nantes -> Nice | Wednesday, Snow, Normal | 1.45x | 16h 02m | 505 € | 🔴 HIGH |
+| Paris -> Marseille | Monday, Clear, Rush hour | 1.25x | 10h 50m | 341 € |  MEDIUM |
+| Paris -> Marseille | Sunday, Clear, Night | 0.77x | 6h 40m | 210 € | LOW |
+| Lille -> Toulouse | Friday, Rain, Rush hour | 1.73x | 22h 12m | 699 € |  HIGH |
+| Nantes -> Nice | Wednesday, Snow, Normal | 1.45x | 16h 02m | 505 € |  HIGH |
 
 The **131 € cost differential** and **4-hour time variance** between the Monday rush-hour run and the Sunday night run for Paris-Marseille demonstrate how scheduling off-peak departures improves fleet margins.
 
@@ -137,7 +137,7 @@ The **131 € cost differential** and **4-hour time variance** between the Monda
 ### 1. Clone the repository
 
 ```bash
-git clone [https://github.com/RaedMeddeb/delivery-route-optimization.git](https://github.com/RaedMeddeb/delivery-route-optimization.git)
+git clone [https://github.com/raed1205/delivery-route-optimization.git](https://github.com/raed1205/delivery-route-optimization.git)
 cd delivery-route-optimization
 ```
 
