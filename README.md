@@ -1,6 +1,6 @@
-#  Delivery Route Optimization — France Network
+# Delivery Route Optimization - France Network
 
-> Graph-based route optimization system for an e-commerce delivery network across 20 French cities, built with NetworkX. Includes a custom **Delivery Prediction Engine** that turns a raw shortest path into a realistic time, cost, and risk estimate.
+Graph-based route optimization system for an e-commerce delivery network across 20 French cities, built with NetworkX. Features a Delivery Prediction Engine that converts graph shortest paths into estimated travel time, cost, and delay risk based on traffic factors.
 
 <p>
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
@@ -11,18 +11,25 @@
 
 ---
 
-##  Objective
+## Documentation & Code
 
-Help an e-commerce company operating across France answer a simple operational question: **what is the fastest, cheapest, and most reliable way to get a delivery from A to B?** The system models the road network as a weighted graph, applies classic graph algorithms to find and traverse optimal routes, and layers a predictive model on top so a dispatcher can see not just distance, but realistic time, cost, and delay risk before committing to a route.
+📄 **[View Full Project Report (PDF)](PROJECT+REPORT.pdf)**  
+📓 **[Open Jupyter Notebook](DELIVERY%20route%20optimization%20code.ipynb)**
 
 ---
 
-##  Graph Model
+## Objective
+
+This system models a road network across 20 French cities as a weighted graph. It calculates optimal paths using standard routing algorithms and applies dynamic traffic condition multipliers (weather, day of week, rush hour) to forecast realistic delivery times, fuel costs, and scheduling risk before dispatching vehicles.
+
+---
+
+## Graph Model
 
 - **20 nodes** (French cities), **30 edges** (road connections) after deduplication
-- Undirected, weighted graph built with `networkx.Graph()`
-- Edge weight = road distance in kilometres
-- Node attributes store latitude/longitude for geographic visualization
+- Undirected, weighted graph initialized with `networkx.Graph()`
+- Edge weights represent distance in kilometers
+- Node attributes contain latitude and longitude coordinates for geographical mapping
 
 ```python
 import networkx as nx
@@ -34,124 +41,108 @@ G.add_edge(source, destination, weight=distance_km)
 
 ---
 
-##  Algorithms
+## Algorithms
 
-| Algorithm | Purpose | Notes |
+| Algorithm | Purpose | Implementation Details |
 |---|---|---|
-| **Dijkstra** | Shortest path between two cities | Guaranteed optimal for positive edge weights; visits the nearest unvisited node at each step |
-| **BFS** | Layer-by-layer network traversal | Explores all direct neighbors before moving further out |
-| **DFS** | Depth-first traversal | Follows one branch as far as possible before backtracking; useful for connectivity checks |
-| **Greedy Nearest-Neighbor** | Multi-stop delivery ordering | Always visits the closest undelivered city next; fast and practical, not always globally optimal |
+| **Dijkstra** | Shortest path between two cities | Finds optimal route for positive edge weights by expanding the nearest unvisited node |
+| **BFS** | Breadth-First Search | Explores network layer by layer to evaluate minimum hop count |
+| **DFS** | Depth-First Search | Traverses paths to maximum depth to assess network connectivity |
+| **Greedy Nearest-Neighbor** | Multi-stop order routing | Iteratively visits the closest unvisited city for multi-destination delivery sequences |
 
-**Example — Dijkstra shortest paths:**
+**Dijkstra Shortest Path Benchmarks:**
 
 | Route | Optimal Path | Distance |
 |---|---|---|
-| Paris → Marseille | Paris → Lyon → Marseille | 780 km |
-| Paris → Nice | Paris → Lyon → Marseille → Toulon → Nice | 995 km |
-| Lille → Toulouse | Lille → Paris → Lyon → Clermont-Ferrand → Toulouse | 1,155 km |
-| Nantes → Strasbourg | Nantes → Paris → Reims → Strasbourg | 875 km |
+| Paris -> Marseille | Paris -> Lyon -> Marseille | 780 km |
+| Paris -> Nice | Paris -> Lyon -> Marseille -> Toulon -> Nice | 995 km |
+| Lille -> Toulouse | Lille -> Paris -> Lyon -> Clermont-Ferrand -> Toulouse | 1,155 km |
+| Nantes -> Strasbourg | Nantes -> Paris -> Reims -> Strasbourg | 875 km |
 
 ---
 
-##  Signature Feature: Delivery Prediction Engine
+## Delivery Prediction Engine
 
-*Developed by Raed Meddeb.*
+*Developed by Raed Meddeb*
 
-Dijkstra tells you the shortest **distance** — it doesn't tell a dispatcher how long a delivery will actually take today, what it will cost, or whether it's at risk of running late. This module answers all three by layering real-world conditions on top of the graph's raw distances.
+While standard graph algorithms calculate minimum physical distance, real-world delivery schedules depend on external conditions. This module applies environmental multipliers to raw distances to estimate actual transit duration, operational cost, and delivery risk.
 
-### The Model
+### Mathematical Formulation
 
-Three independent conditions — **day of week**, **weather**, and **time period** — each carry a multiplier relative to a 90 km/h baseline speed. The three combine multiplicatively into a single traffic factor:
-
-$$
-\text{traffic\_factor} = f(\text{day}) \times f(\text{weather}) \times f(\text{period})
-$$
-
-That factor is then applied to both travel time and cost:
+Three environmental parameters (day of week, weather condition, and time period) combine multiplicatively into a single traffic factor relative to a 90 km/h base speed:
 
 $$
-\text{travel\_time} = \frac{\text{distance}}{90 \div \text{traffic\_factor}}
+\text{Traffic Factor} = f(\text{Day}) \times f(\text{Weather}) \times f(\text{Period})
 $$
 
+Travel time and fuel cost are updated using the resulting traffic factor:
+
 $$
-\text{cost} = \text{distance} \times 0.15\,\text{€/km} \times \text{traffic\_factor}
+\text{Travel Time} = \frac{\text{Distance}}{90 \div \text{Traffic Factor}}
 $$
 
 $$
-\text{delay\_risk} =
+\text{Cost} = \text{Distance} \times 0.15\,\text{€/km} \times \text{Traffic Factor}
+$$
+
+$$
+\text{Delay Risk} =
 \begin{cases}
-\text{LOW} & \text{traffic\_factor} < 1.20 \\
-\text{MEDIUM} & 1.20 \leq \text{traffic\_factor} \leq 1.50 \\
-\text{HIGH} & \text{traffic\_factor} > 1.50
+\text{LOW} & \text{Traffic Factor} < 1.20 \\
+\text{MEDIUM} & 1.20 \le \text{Traffic Factor} \le 1.50 \\
+\text{HIGH} & \text{Traffic Factor} > 1.50
 \end{cases}
 $$
 
-### Multiplier Table
+### Traffic Multipliers
 
-| Condition | Value | Multiplier |
+| Category | Parameter | Multiplier |
 |---|---|---|
-| **Day** | Friday | 1.45× |
-| | Sunday | 0.85× |
-| **Weather** | Snow | 1.65× |
-| | Rain | 1.25× |
-| | Clear | 1.00× |
-| **Period** | Rush hour | 1.30× |
-| | Holiday | 0.85× |
-| | Normal | 1.00× |
+| **Day** | Friday | 1.45x |
+| | Sunday | 0.85x |
+| **Weather** | Snow | 1.65x |
+| | Rain | 1.25x |
+| | Clear | 1.00x |
+| **Period** | Rush hour | 1.30x |
+| | Holiday | 0.85x |
+| | Normal | 1.00x |
 
-### Why it matters
+### Scenario Predictions
 
-The same route can swing dramatically depending on conditions  the gap between best- and worst-case isn't cosmetic, it's the difference between a route that's safe to promise a customer and one that isn't.
-
-| Route | Conditions | Factor | Time | Cost | Risk |
+| Route | Test Conditions | Traffic Factor | Time | Cost | Risk Level |
 |---|---|---|---|---|---|
-| Paris → Marseille | Monday, clear, rush hour | 1.76× | 15h15 | 206 € | 🔴 HIGH |
-| Paris → Marseille | Sunday, clear, normal | 0.85× | 7h21 | 99 € | 🟢 LOW |
-| Lille → Toulouse | Friday, rain, rush hour | 2.36× | 30h17 | 409 € | 🔴 HIGH |
-| Nantes → Nice | Wednesday, snow, normal | 1.90× | 25h32 | 345 € | 🔴 HIGH |
-
-That **107 € gap** between the best- and worst-case Paris–Marseille run is a concrete, actionable signal for when it's worth rescheduling a delivery rather than dispatching it into rush hour.
+| Paris -> Marseille | Monday, Clear, Rush hour | 1.76x | 15h15 | 206 € | 🔴 HIGH |
+| Paris -> Marseille | Sunday, Clear, Normal | 0.85x | 7h21 | 99 € | 🟢 LOW |
+| Lille -> Toulouse | Friday, Rain, Rush hour | 2.36x | 30h17 | 409 € | 🔴 HIGH |
+| Nantes -> Nice | Wednesday, Snow, Normal | 1.90x | 25h32 | 345 € | 🔴 HIGH |
 
 ---
 
-##  Installation & Usage
+## Installation & Usage
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/RaedMeddeb/delivery-route-optimization.git
+git clone [https://github.com/RaedMeddeb/delivery-route-optimization.git](https://github.com/RaedMeddeb/delivery-route-optimization.git)
 cd delivery-route-optimization
 ```
 
-### 2. Create a virtual environment (recommended)
+### 2. Set up virtual environment
 
 ```bash
 python -m venv venv
-source venv/bin/activate   # on Windows: venv\Scripts\activate
+source venv/bin/activate   # On Windows: venv\Scripts\activate
 ```
 
 ### 3. Install dependencies
 
 ```bash
-pip install -r requirements.txt
-```
-
-### 4. Run the main script
-
-```bash
-python src/main.py
-```
-
-### 5. (Optional) Run the interactive chatbot interface
-
-```bash
-python src/chatbot.py
+pip install networkx pandas numpy matplotlib
 ```
 
 ---
 
-##  Example Usage
+## Example Usage
 
 ```python
 from src.graph_model import build_graph
@@ -160,11 +151,11 @@ from src.prediction import predict_delivery
 
 G = build_graph("data/cities.csv", "data/distance.csv")
 
-# Shortest path
+# Compute shortest path
 path, distance = dijkstra_shortest_path(G, "Paris", "Marseille")
 print(f"Path: {' -> '.join(path)} | Distance: {distance} km")
 
-# Delivery prediction under specific conditions
+# Predict delivery metrics under traffic constraints
 result = predict_delivery(
     distance_km=distance,
     day="Monday",
@@ -174,73 +165,37 @@ result = predict_delivery(
 print(result)
 ```
 
-**Output:**
+**Execution Output:**
 
-```
+```text
 Path: Paris -> Lyon -> Marseille | Distance: 780 km
 {'traffic_factor': 1.76, 'travel_time': '15h15', 'cost': '206 €', 'delay_risk': 'HIGH'}
 ```
 
 ---
 
-##  requirements.txt
+## Repository Structure
 
-```txt
-networkx>=3.0
-pandas>=2.0
-numpy>=1.24
-matplotlib>=3.7
-```
-
----
-
-##  Project Structure
-
-```
+```text
 delivery-route-optimization/
-├── data/
-│   ├── cities.csv              # 20 cities: name, latitude, longitude
-│   ├── distance.csv            # 31 road connections: source, destination, distance_km
-│   └── delivery.csv            # delivery constraints: city, priority, time window
-├── src/
-│   ├── graph_model.py          # graph construction (NetworkX)
-│   ├── routing.py              # Dijkstra, BFS, DFS implementations
-│   ├── greedy_delivery.py      # nearest-neighbor delivery ordering
-│   ├── prediction.py           # Delivery Prediction Engine (traffic multipliers)
-│   ├── road_weight_modifier.py # dynamic edge weight updates (closures, detours)
-│   ├── visualization.py        # geographic network + route-highlight maps
-│   ├── chatbot.py              # text-command interface
-│   └── main.py                 # entry point
-├── tests/
-│   ├── test_routing.py
-│   ├── test_prediction.py
-│   └── test_graph_model.py
-├── docs/
-│   └── project_report.pdf
-├── requirements.txt
-└── README.md
+├── DELIVERY route optimization code.ipynb  # Primary Jupyter notebook implementation
+├── PROJECT+REPORT.pdf                      # Complete technical project report
+├── cities.pdf                              # Node coordinate dataset
+├── distance.pdf                            # Edge weight dataset
+├── delivery.pdf                            # Delivery window constraints dataset
+└── README.md                               # Repository documentation
 ```
 
 ---
 
-##  Team
+## Team
 
-Built for the Graph Theory course — Academic Year 2025–2026.
+Academic project developed for the Graph Theory course (Academic Year 2025-2026).
 
-| Member | Signature Feature |
+| Member | Module Contribution |
 |---|---|
-| **Raed Meddeb** | Delivery Prediction Module (time, cost, delay risk) |
-| Sadok Tlili | Interactive Chatbot |
-| Ibrahim Grira | K-Means Driver Assignment |
+| **Raed Meddeb** | Delivery Prediction Engine (time, cost, and delay risk) |
+| Sadok Tlili | Interactive Chatbot Interface |
+| Ibrahim Grira | Driver Clustering (K-Means) |
 | Ahmed Frouja | Dynamic Road Weight Modifier |
-| Koussay Ibn Haj Kacem | Geographic Network Visualization |
-
-The core graph model (Dijkstra, BFS, DFS, greedy delivery ordering) was built collaboratively by the team; each member then extended it with an individual signature module.
-
----
-
-##  Possible Next Steps
-
-- Replace the greedy delivery optimizer with a full Travelling Salesman Problem (TSP) solver
-- Integrate a live traffic API for real-time edge weights instead of static multipliers
-- Build a web interface around the chatbot for non-technical users
+| Koussay Ibn Haj Kacem | Geographical Network Visualization |
